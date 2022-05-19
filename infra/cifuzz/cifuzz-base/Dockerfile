@@ -16,6 +16,11 @@
 
 FROM gcr.io/oss-fuzz-base/base-runner
 
+RUN git config --global http.proxy http://proxy-mu.intel.com:911 && \
+    git config --global https.proxy http://proxy-mu.intel.com:912 && \
+    export HTTPS_PROXY=http://proxy-mu.intel.com:912 && \
+    export HTTP_PROXY=http://proxy-mu.intel.com:911
+
 RUN apt-get update && \
     apt-get install -y systemd && \
     apt-get install -y --no-install-recommends nodejs npm && \
@@ -38,7 +43,11 @@ COPY ./infra/cifuzz/requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
 ADD . ${OSS_FUZZ_ROOT}
-RUN npm install ${OSS_FUZZ_ROOT}/infra/cifuzz
+
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set proxy http://proxy-mu.intel.com:911 && \
+    npm config set hhtps-proxy http://proxy-mu.intel.com:912 && \
+    npm install ${OSS_FUZZ_ROOT}/infra/cifuzz
 
 ENV PYTHONUNBUFFERED=1
 
